@@ -5,6 +5,7 @@ import StoryPhase    from './features/story/StoryPhase';
 import SimulatePhase from './features/simulate/SimulatePhase';
 import PlayPhase     from './features/play/PlayPhase';
 import ReflectPhase  from './features/reflect/ReflectPhase';
+import { stopAudio } from './utils/audio';
 
 /* ── Floating background numbers ── */
 const FLOAT_ITEMS = [
@@ -25,17 +26,17 @@ function FloatingNumbers() {
   );
 }
 
-/* ── Journey Bar ── */
+/* ── Journey Bar — clickable, stops audio on switch ── */
 const JOURNEY_ITEMS = [
-  { icon: '🔍', label: 'Wonder' },
-  { icon: '📖', label: 'Story' },
-  { icon: '🧪', label: 'Simulate' },
-  { icon: '🎮', label: 'Play' },
-  { icon: '📓', label: 'Reflect' },
+  { icon: '🔍', label: 'Wonder',   phase: 'wonder'   },
+  { icon: '📖', label: 'Story',    phase: 'story'    },
+  { icon: '🧪', label: 'Simulate', phase: 'simulate' },
+  { icon: '🎮', label: 'Play',     phase: 'play'     },
+  { icon: '📓', label: 'Reflect',  phase: 'reflect'  },
 ];
 const PHASE_ORDER = ['intro', 'wonder', 'story', 'simulate', 'play', 'reflect'];
 
-function JourneyBar({ phase }) {
+function JourneyBar({ phase, onPhaseClick }) {
   const phaseIndex = PHASE_ORDER.indexOf(phase);
   return (
     <div className="journey-bar">
@@ -45,10 +46,20 @@ function JourneyBar({ phase }) {
         const isCompleted = phaseIndex > stepPhaseIndex;
         return (
           <div key={i} style={{ display: 'flex', alignItems: 'center' }}>
-            <div className={`journey-step ${isActive ? 'active' : ''} ${isCompleted ? 'completed' : ''}`}>
+            <button
+              className={`journey-step ${isActive ? 'active' : ''} ${isCompleted ? 'completed' : ''}`}
+              onClick={() => onPhaseClick(item.phase)}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                padding: 0,
+              }}
+              title={`Go to ${item.label}`}
+            >
               <div className="journey-step-dot">{isCompleted ? '✓' : item.icon}</div>
               <div className="journey-step-label">{item.label}</div>
-            </div>
+            </button>
             {i < JOURNEY_ITEMS.length - 1 && (
               <div className={`journey-connector ${phaseIndex > stepPhaseIndex ? 'filled' : ''}`} />
             )}
@@ -66,7 +77,18 @@ export default function App() {
   const [playStats, setPlayStats] = useState(null);
 
   const toggleAudio = useCallback(() => setAudio(v => !v), []);
-  const goHome = useCallback(() => { setPhase('intro'); setPlayStats(null); }, []);
+
+  const goHome = useCallback(() => {
+    stopAudio();
+    setPhase('intro');
+    setPlayStats(null);
+  }, []);
+
+  // Navigate to any phase, always stop current audio first
+  const handlePhaseClick = useCallback((targetPhase) => {
+    stopAudio();
+    setPhase(targetPhase);
+  }, []);
 
   const showJourney = phase !== 'intro';
 
@@ -85,45 +107,45 @@ export default function App() {
           <button className="home-btn" onClick={goHome}>🏠 Home</button>
         )}
 
-        {/* Journey bar */}
-        {showJourney && <JourneyBar phase={phase} />}
+        {/* Journey bar — clickable */}
+        {showJourney && <JourneyBar phase={phase} onPhaseClick={handlePhaseClick} />}
 
         {/* Phase content */}
         {phase === 'intro' && (
           <IntroScreen
-            onStart={() => setPhase('wonder')}
+            onStart={() => { stopAudio(); setPhase('wonder'); }}
             audioEnabled={audioEnabled}
             onToggleAudio={toggleAudio}
           />
         )}
         {phase === 'wonder' && (
           <WonderPhase
-            onComplete={() => setPhase('story')}
+            onComplete={() => { stopAudio(); setPhase('story'); }}
             audioEnabled={audioEnabled}
           />
         )}
         {phase === 'story' && (
           <StoryPhase
-            onComplete={() => setPhase('simulate')}
+            onComplete={() => { stopAudio(); setPhase('simulate'); }}
             audioEnabled={audioEnabled}
           />
         )}
         {phase === 'simulate' && (
           <SimulatePhase
-            onComplete={() => setPhase('play')}
+            onComplete={() => { stopAudio(); setPhase('play'); }}
             audioEnabled={audioEnabled}
           />
         )}
         {phase === 'play' && (
           <PlayPhase
-            onComplete={(stats) => { setPlayStats(stats); setPhase('reflect'); }}
+            onComplete={(stats) => { stopAudio(); setPlayStats(stats); setPhase('reflect'); }}
             audioEnabled={audioEnabled}
           />
         )}
         {phase === 'reflect' && (
           <ReflectPhase
             stats={playStats}
-            onRestart={() => setPhase('wonder')}
+            onRestart={() => { stopAudio(); setPhase('wonder'); }}
             onGoHome={goHome}
             audioEnabled={audioEnabled}
           />

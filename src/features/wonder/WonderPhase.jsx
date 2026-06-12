@@ -1,4 +1,6 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { useAudio } from '../../core/audio/useAudio';
+import { wonderHookNarration } from '../../utils/narration';
 
 const WONDER_QUESTIONS = [
   {
@@ -6,30 +8,35 @@ const WONDER_QUESTIONS = [
     subtext: "When two amounts compare the same way, we call it a ratio!",
     emoji: "🍊",
     bgEmojis: ["🍊", "💧", "⚖️", "🔢"],
+    worldId: 1,
   },
   {
     question: "A car travels 60 km in 1 hour. How far does it go in 2 hours if it keeps the same speed?",
     subtext: "Speed is a rate — it compares distance to time!",
     emoji: "🚗",
     bgEmojis: ["🚗", "⏱️", "🛣️", "💨"],
+    worldId: 2,
   },
   {
     question: "At a stall, 3 apples cost $2. How much do 9 apples cost?",
     subtext: "When price per item stays the same, quantities are in proportion!",
     emoji: "🍎",
     bgEmojis: ["🍎", "💰", "🛒", "✨"],
+    worldId: 1,
   },
   {
     question: "In a class, 12 out of 30 students like maths. What fraction of the class is that?",
     subtext: "Ratios help us compare parts to wholes — just like fractions!",
     emoji: "📊",
     bgEmojis: ["📊", "🧮", "🎓", "🔢"],
+    worldId: 1,
   },
   {
     question: "A recipe needs 1 cup of sugar for every 4 cups of flour. If you use 3 cups of sugar, how much flour do you need?",
     subtext: "Keeping ratios equal is what proportional thinking is all about!",
     emoji: "🍰",
     bgEmojis: ["🍰", "🥣", "⚖️", "🌟"],
+    worldId: 1,
   },
 ];
 
@@ -39,6 +46,7 @@ export default function WonderPhase({ onComplete, audioEnabled }) {
   );
   const [stage, setStage] = useState(0);
   const [particles, setParticles] = useState([]);
+  const { playNarration, stop } = useAudio();
 
   useEffect(() => {
     const p = Array.from({ length: 20 }, (_, i) => ({
@@ -59,9 +67,22 @@ export default function WonderPhase({ onComplete, audioEnabled }) {
     return () => { clearTimeout(t1); clearTimeout(t2); };
   }, []);
 
+  // Play hook narration after reveal
+  useEffect(() => {
+    if (stage < 1 || !audioEnabled) return;
+    const segs = wonderHookNarration(wonder.worldId);
+    if (segs.length > 0) playNarration(segs, null, null);
+  }, [stage, audioEnabled]);
+
+  // Stop audio on unmount
+  useEffect(() => {
+    return () => stop();
+  }, []);
+
   const handleDiscover = useCallback(() => {
+    stop();
     setTimeout(() => onComplete(), 400);
-  }, [onComplete]);
+  }, [onComplete, stop]);
 
   return (
     <div className="wonder-phase">

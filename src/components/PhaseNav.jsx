@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useProgressStore } from '../core/store/progressStore';
+import { stopAudio } from '../utils/audio';
 import { Sparkles, BookOpen, Layers, Gamepad2, Star, Check } from 'lucide-react';
 
 const PHASES = [
@@ -14,8 +15,13 @@ const PHASES = [
 const PHASE_ORDER = ['wonder','story','simulate','play','reflect'];
 
 export default function PhaseNav() {
-  const { currentPhase, completedPhases, currentWorldId } = useProgressStore();
+  const { currentPhase, completedPhases, currentWorldId, setPhase } = useProgressStore();
   const currentIdx  = PHASE_ORDER.indexOf(currentPhase);
+
+  const handlePhaseClick = (phaseId) => {
+    stopAudio();
+    setPhase(phaseId);
+  };
 
   return (
     <div className="sticky top-12 z-[90] bg-white/10 backdrop-blur-xl border-b border-white/10">
@@ -37,7 +43,7 @@ export default function PhaseNav() {
           ))}
         </div>
 
-        {/* Phase pills */}
+        {/* Phase pills — all clickable */}
         <div className="flex items-center gap-1 md:gap-2">
           {PHASES.map((phase, idx) => {
             const isDone    = completedPhases?.[currentWorldId]?.includes(phase.id) || idx < currentIdx;
@@ -46,9 +52,14 @@ export default function PhaseNav() {
 
             return (
               <React.Fragment key={phase.id}>
-                <div className={`relative flex-1 min-w-0 flex flex-col items-center gap-1 py-1.5 rounded-xl transition-all ${
-                  isActive  ? 'bg-primary/8' : ''
-                }`}>
+                <button
+                  onClick={() => handlePhaseClick(phase.id)}
+                  className={`relative flex-1 min-w-0 flex flex-col items-center gap-1 py-1.5 rounded-xl transition-all cursor-pointer ${
+                    isActive ? 'bg-primary/8' : 'hover:bg-white/5'
+                  }`}
+                  style={{ background: 'none', border: 'none' }}
+                  title={`Go to ${phase.label}`}
+                >
                   {/* Dot / icon */}
                   <div className={`w-7 h-7 rounded-xl flex items-center justify-center transition-all ${
                     isActive ? 'bg-primary text-white shadow-md scale-110'
@@ -71,7 +82,7 @@ export default function PhaseNav() {
                     <motion.div layoutId="activePhaseBar"
                       className="absolute bottom-0 left-2 right-2 h-0.5 bg-primary rounded-full" />
                   )}
-                </div>
+                </button>
 
                 {/* Connector */}
                 {idx < PHASES.length - 1 && (
