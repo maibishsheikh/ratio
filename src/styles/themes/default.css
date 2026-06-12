@@ -1,6 +1,0 @@
-/* default.css — Standard theme (already defined in design-tokens.css) */
-/* This file is a placeholder for theme-specific overrides beyond the tokens. */
-
-[data-theme="default"] {
-  /* All default values are set in design-tokens.css :root */
-}

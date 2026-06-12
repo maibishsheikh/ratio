@@ -1,33 +1,42 @@
 /**
- * scripts/clean_audio.js
- * Removes orphaned .mp3 files from public/assets/audio/ that are no
- * longer referenced in src/utils/audioMap.js.
+ * Audio Cleanup Script
  * Usage: node scripts/clean_audio.js
+ *
+ * Removes any .mp3 files in public/assets/audio/ that are no longer
+ * referenced in src/utils/audioMap.js.
  */
+
 import fs   from 'fs';
 import path from 'path';
-import { createRequire } from 'module';
+import { fileURLToPath } from 'url';
 
-const AUDIO_DIR = path.resolve('public/assets/audio');
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const ROOT      = path.resolve(__dirname, '..');
 
-// Dynamically import the audioMap to get current valid paths
-const mapFile = path.resolve('src/utils/audioMap.js');
-const mapText = fs.readFileSync(mapFile, 'utf8');
+// Dynamically import the audioMap
+const { audioMap } = await import('../src/utils/audioMap.js');
 
-// Extract all referenced paths (values that look like /assets/audio/...)
-const referencedFiles = new Set(
-  [...mapText.matchAll(/['"]\/assets\/audio\/([^'"]+)['"]/g)].map(m => m[1])
-);
+const audioDir   = path.join(ROOT, 'public', 'assets', 'audio');
+const validFiles = new Set(Object.values(audioMap).map(u => path.basename(u)));
 
-const allFiles = fs.readdirSync(AUDIO_DIR).filter(f => f.endsWith('.mp3'));
+if (!fs.existsSync(audioDir)) {
+  console.log('ℹ️  No audio directory found. Nothing to clean.');
+  process.exit(0);
+}
+
+const allFiles = fs.readdirSync(audioDir).filter(f => f.endsWith('.mp3'));
 let removed = 0;
 
 for (const file of allFiles) {
-  if (!referencedFiles.has(file)) {
-    fs.unlinkSync(path.join(AUDIO_DIR, file));
-    console.log(`  🗑  Removed orphan: ${file}`);
+  if (!validFiles.has(file)) {
+    fs.unlinkSync(path.join(audioDir, file));
+    console.log(`🗑️  Removed: ${file}`);
     removed++;
   }
 }
 
-console.log(`\n✅  Cleanup done. Removed ${removed} orphaned file(s). ${allFiles.length - removed} file(s) retained.`);
+if (removed === 0) {
+  console.log('✅  No orphaned audio files found.');
+} else {
+  console.log(`✅  Removed ${removed} orphaned file(s).`);
+}

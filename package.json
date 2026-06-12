@@ -1,38 +1,21 @@
 {
-  "name": "ratiocraft",
-  "version": "2.0.0",
-  "private": true,
-  "description": "RatioCraft — Ratios, Rates & Proportions | Grade 6 | Intellia SG",
+  "name": "measurement-length-cm-m",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev":            "vite",
-    "build":          "vite build",
-    "preview":        "vite preview",
-    "lint":           "eslint src --ext js,jsx --report-unused-disable-directives",
+    "dev":   "vite",
+    "build": "vite build",
+    "preview":"vite preview",
     "generate-audio": "node scripts/generate_audio.js",
-    "clean-audio":    "node scripts/clean_audio.js",
-    "api":            "node api/index.js",
-    "dev:full":       "concurrently \"npm run dev\" \"npm run api\""
+    "clean-audio":    "node scripts/clean_audio.js"
   },
   "dependencies": {
-    "framer-motion":  "^11.0.0",
-    "html2pdf.js":    "^0.10.1",
-    "lucide-react":   "^0.400.0",
-    "react":          "^18.3.1",
-    "react-dom":      "^18.3.1",
-    "zustand":        "^4.5.2"
+    "react":     "^18.2.0",
+    "react-dom": "^18.2.0"
   },
   "devDependencies": {
-    "@vitejs/plugin-react": "^4.3.0",
-    "autoprefixer":         "^10.4.19",
-    "concurrently":         "^8.2.2",
-    "cors":                 "^2.8.5",
-    "dotenv":               "^16.4.5",
-    "eslint":               "^8.57.0",
-    "express":              "^4.19.2",
-    "express-rate-limit":   "^7.3.1",
-    "postcss":              "^8.4.38",
-    "tailwindcss":          "^3.4.4",
-    "vite":                 "^5.3.1"
+    "@vitejs/plugin-react": "^4.0.0",
+    "vite": "^5.0.0",
+    "dotenv": "^16.0.0"
   }
 }

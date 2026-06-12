@@ -1,79 +1,71 @@
+import React, { useEffect } from 'react';
+import { narrate, preloadNarration } from '../utils/audio.js';
+import { introNarration } from '../utils/narration.js';
+
 const JOURNEY_PHASES = [
-  { icon: '🔍', label: 'Wonder',   desc: 'A ratio mystery awaits!' },
-  { icon: '📖', label: 'Story',    desc: 'See ratios in real life' },
-  { icon: '🧪', label: 'Simulate', desc: 'Build ratios & rates' },
-  { icon: '🎮', label: 'Play',     desc: '100 challenges & worlds' },
+  { icon: '🔍', label: 'Wonder',   desc: 'A measurement mystery!' },
+  { icon: '📖', label: 'Story',    desc: 'Emma & Oliver measure' },
+  { icon: '🧪', label: 'Simulate', desc: 'Use the ruler' },
+  { icon: '🎮', label: 'Play',     desc: 'Gamified challenges' },
   { icon: '📓', label: 'Reflect',  desc: 'What did you learn?' },
 ];
 
 export default function IntroScreen({ onStart }) {
-  return (
-    <div className="intro-screen">
-      {/* Badge */}
-      <div className="intro-badge">✨ Intellia SG · Grade 6 Maths</div>
+  useEffect(() => {
+    preloadNarration(introNarration());
+    const { cancel } = narrate(introNarration(), true);
+    return cancel;
+  }, []);
 
-      {/* Title */}
+  return (
+    <div className="intro-screen" role="main">
+      <div className="intro-badge">✨ Intellia Global · Grade 2 Maths</div>
+
       <h1 className="intro-title">
-        <span style={{ color: 'var(--gold)' }}>RatioCraft</span>
-        <br />
-        <span style={{ color: 'var(--coral)', fontSize: '70%' }}>Ratios, Rates &amp; Proportions</span>
+        <span style={{ color: 'var(--coral)' }}>Measurement:</span>{' '}
+        <span style={{ color: 'var(--gold)' }}>Length in cm &amp; m</span>
       </h1>
-      <p style={{ color: 'var(--text-secondary)', fontSize: '1.05rem', marginTop: 4, fontFamily: 'var(--font-display)' }}>
-        Lesson 1 · Introduction to Ratios &amp; Rates
+
+      <p style={{ fontFamily: 'var(--font-display)', fontSize: '1rem', color: 'var(--text-secondary)' }}>
+        Lesson 5.1 · Measure in centimetres and metres
       </p>
 
-      {/* Mascot */}
       <div className="mascot-container">
-        <div className="mascot">🧮</div>
+        <div className="mascot" role="img" aria-label="Roo the Robot mascot">🤖</div>
         <div className="speech-bubble">
-          Let's explore ratios! ⚖️
+          Ready to measure the world? 📏
         </div>
       </div>
 
-      {/* Description */}
       <p className="intro-desc">
-        Learn to spot <strong style={{ color: 'var(--gold)' }}>ratios and rates</strong> everywhere —
-        in markets, on tracks, and in everyday life.
-        Master proportions and unlock the power of maths!
+        Learn to measure, compare, and solve real-world length problems using centimetres and metres!
       </p>
 
-      {/* Journey map */}
+      <button
+        className="intro-start-btn"
+        onClick={onStart}
+        aria-label="Start Measuring — begin Lesson 5.1"
+      >
+        Start Measuring! 📏
+      </button>
+
       <div className="intro-journey-map">
         <div className="intro-journey-title">Your Learning Journey</div>
         <div className="intro-journey-steps">
           {JOURNEY_PHASES.map((p, i) => (
-            <div key={i} className="intro-journey-step">
-              <div className="intro-journey-icon">{p.icon}</div>
-              <div className="intro-journey-info">
-                <div className="intro-journey-label">{p.label}</div>
-                <div className="intro-journey-desc">{p.desc}</div>
+            <React.Fragment key={p.label}>
+              <div className="intro-journey-step">
+                <div className="intro-journey-icon">{p.icon}</div>
+                <div className="intro-journey-info">
+                  <div className="intro-journey-label">{p.label}</div>
+                  <div className="intro-journey-desc">{p.desc}</div>
+                </div>
               </div>
               {i < JOURNEY_PHASES.length - 1 && (
-                <div className="intro-journey-arrow">→</div>
+                <div className="intro-journey-arrow" aria-hidden="true">→</div>
               )}
-            </div>
+            </React.Fragment>
           ))}
-        </div>
-      </div>
-
-      {/* CTA */}
-      <button className="btn btn-primary btn-lg intro-start-btn" onClick={onStart} id="start-journey-btn">
-        🚀 Begin Your Journey!
-      </button>
-
-      {/* Feature cards */}
-      <div className="feature-cards">
-        <div className="feature-card">
-          <div className="feature-card-icon">🎯</div>
-          <div className="feature-card-label">100 Challenges</div>
-        </div>
-        <div className="feature-card">
-          <div className="feature-card-icon">⚖️</div>
-          <div className="feature-card-label">Ratios &amp; Rates</div>
-        </div>
-        <div className="feature-card">
-          <div className="feature-card-icon">🏆</div>
-          <div className="feature-card-label">Badges &amp; XP</div>
         </div>
       </div>
     </div>
