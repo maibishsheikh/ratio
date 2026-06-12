@@ -1,191 +1,155 @@
 /**
- * audio.js — Core Audio Engine
+ * Static MP3-only Audio Engine — module-level singleton.
  *
- * Pipeline (per spec):
- * 1. Cache check → audioMap[text] → immediate static asset URL (zero latency)
- * 2. Dynamic generation → ElevenLabs API (via /api/audio/generate proxy) if key present
- * 3. No browser TTS fallback — if unavailable, skip narration silently
- * 4. Preloading — while playing segment i, preemptively fetch segment i+1
+ * ALL narration comes exclusively from pre-generated MP3 files listed in
+ * audioMap.js. There is NO ElevenLabs API call, NO browser TTS, NO fetch.
+ * If a text string has no entry in audioMap the segment is skipped silently.
+ *
+ * This eliminates the primary source of phase-bleed: async ElevenLabs fetches
+ * that outlive their generation and play into the next phase.
+ *
+ * Bleed prevention — generation counter + _resolveCurrentSpeak:
+ * ─────────────────────────────────────────────────────────────
+ * stopAll() increments _gen AND immediately resolves the in-flight _speak()
+ * promise. Without the resolve, pause() would leave the narrate() loop frozen
+ * at `await _speak(...)`, unable to reach the generation check and exit.
  */
 
-import { audioMap } from './audioMap';
-import { VOICE_ID, VOICE_MODEL, VOICE_SETTINGS } from './narration';
+import { audioMap } from './audioMap.js';
 
-// ─── Module-level state ───────────────────────────────────────────────────
-let _currentAudio = null;           // Active HTMLAudioElement
-let _isMuted       = false;
-const _elevenLabsCache = new Map(); // text → objectURL (runtime cache)
+// ─── Module-level state ───────────────────────────────────────────────────────
+let _gen                 = 0;    // increments on every stopAll()
+let _currentAudio        = null; // the Audio element currently playing
+let _resolveCurrentSpeak = null; // resolve() of the in-flight _speak() promise
 
-// ─── Helpers ──────────────────────────────────────────────────────────────
-function getApiKey() {
-  return (typeof import.meta !== 'undefined' && import.meta.env)
-    ? import.meta.env.VITE_ELEVENLABS_API_KEY
-    : null;
-}
+// ─── Segment helpers ──────────────────────────────────────────────────────────
+export const say       = (t) => ({ text: t, style: 'statement'     });
+export const ask       = (t) => ({ text: t, style: 'question'      });
+export const cheer     = (t) => ({ text: t, style: 'encouragement' });
+export const emphasize = (t) => ({ text: t, style: 'emphasis'      });
+export const think     = (t) => ({ text: t, style: 'thinking'      });
+export const celebrate = (t) => ({ text: t, style: 'celebration'   });
+export const instruct  = (t) => ({ text: t, style: 'instruction'   });
 
-/**
- * Resolve a URL for the given text string.
- * Returns: static asset path, cached objectURL, or null if unavailable.
- */
-export async function getAudioUrl(text, style = 'statement') {
-  // 1. Static cache (audioMap)
-  if (audioMap[text]) {
-    return audioMap[text];
-  }
-
-  // 2. In-memory runtime cache (previous dynamic generations)
-  if (_elevenLabsCache.has(text)) {
-    return _elevenLabsCache.get(text);
-  }
-
-  // 3. Dynamic ElevenLabs generation
-  const apiKey = getApiKey();
-  if (!apiKey) {
-    return null; // No fallback — skip silently per spec
-  }
-
-  try {
-    const voiceSettings = VOICE_SETTINGS[style] || VOICE_SETTINGS.statement;
-    const response = await fetch(`/api/audio/generate`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        text,
-        style,
-        voiceId: VOICE_ID,
-        modelId: VOICE_MODEL,
-        voiceSettings,
-      }),
-    });
-
-    if (!response.ok) return null;
-
-    const blob = await response.blob();
-    const objectUrl = URL.createObjectURL(blob);
-    _elevenLabsCache.set(text, objectUrl);
-    return objectUrl;
-  } catch {
-    return null; // Silent skip on any error
-  }
-}
-
-/**
- * Play a single audio segment (HTMLAudioElement based).
- * Respects mute state. Resolves when playback ends or is skipped.
- */
-export function speak(url, onEnd) {
-  if (!url) {
-    // No audio available — resolve immediately so narration chain continues
-    if (onEnd) onEnd();
-    return;
-  }
+// ─── stopAll ──────────────────────────────────────────────────────────────────
+export function stopAll() {
+  _gen++;
 
   if (_currentAudio) {
     _currentAudio.pause();
-    _currentAudio.src = '';
+    try { _currentAudio.src = ''; } catch (_) {}
+    _currentAudio = null;
   }
 
-  const audio = new Audio(url);
-  audio.muted = _isMuted;
-  _currentAudio = audio;
-
-  audio.onended  = () => { _currentAudio = null; if (onEnd) onEnd(); };
-  audio.onerror  = () => { _currentAudio = null; if (onEnd) onEnd(); };
-  audio.play().catch(() => { _currentAudio = null; if (onEnd) onEnd(); });
+  if (_resolveCurrentSpeak) {
+    const resolve        = _resolveCurrentSpeak;
+    _resolveCurrentSpeak = null;
+    resolve(); // unblocks _speak() → loop advances → gen check fires → loop exits
+  }
 }
 
-/**
- * Narrate a sequence of {text, style} segments with eager preloading.
- * While segment i plays, segment i+1 is pre-fetched.
- *
- * @param {Array<{text:string, style:string}>} segments
- * @param {Function} onSegmentStart - called with (index, text) before each segment plays
- * @param {Function} onComplete     - called when all segments finish
- * @returns {Function} cancel — call to stop narration immediately
- */
-export function narrate(segments, onSegmentStart, onComplete) {
-  if (!segments || segments.length === 0) {
-    if (onComplete) onComplete();
-    return () => {};
-  }
+// ─── Resolve a text string to a static MP3 path ───────────────────────────────
+// Returns the audioMap path, or null if not found. Never fetches anything.
+export function getAudioUrl(text) {
+  if (!text) return null;
+  return audioMap[text] ?? null;
+}
 
-  let cancelled = false;
-  let i = 0;
+// ─── Play a single static MP3 path ───────────────────────────────────────────
+function _speak(url, myGen) {
+  return new Promise((resolve) => {
+    if (!url || _gen !== myGen) { resolve(); return; }
 
-  // Pre-fetch next segment in background
-  const prefetch = (idx) => {
-    if (idx < segments.length) {
-      getAudioUrl(segments[idx].text, segments[idx].style);
-    }
-  };
-
-  const playNext = async () => {
-    if (cancelled || i >= segments.length) {
-      if (!cancelled && onComplete) onComplete();
-      return;
-    }
-
-    const seg = segments[i];
-    if (onSegmentStart) onSegmentStart(i, seg.text);
-
-    // Prefetch the one after this
-    prefetch(i + 1);
-
-    const url = await getAudioUrl(seg.text, seg.style);
-
-    if (cancelled) return;
-
-    speak(url, () => {
-      i++;
-      playNext();
-    });
-  };
-
-  // Start prefetching first segment immediately
-  prefetch(0);
-  playNext();
-
-  return () => {
-    cancelled = true;
     if (_currentAudio) {
       _currentAudio.pause();
-      _currentAudio.src = '';
+      try { _currentAudio.src = ''; } catch (_) {}
       _currentAudio = null;
     }
-  };
-}
 
-/**
- * Preload a narration sequence without playing (call before a phase transition).
- */
-export function preloadNarration(segments) {
-  segments?.forEach((seg) => {
-    getAudioUrl(seg.text, seg.style);
+    const audio  = new Audio(url);
+    audio.volume = 0.95;
+    _currentAudio = audio;
+
+    _resolveCurrentSpeak = resolve;
+
+    const done = () => {
+      _resolveCurrentSpeak = null;
+      _currentAudio        = null;
+      resolve();
+    };
+
+    audio.onended = done;
+    audio.onerror = done;
+    audio.play().catch(done);
   });
 }
 
-/**
- * Stop all audio immediately.
- */
-export function stopAudio() {
-  if (_currentAudio) {
-    _currentAudio.pause();
-    _currentAudio.src = '';
-    _currentAudio = null;
+// ─── Sequential narration (MP3-only, synchronous URL resolution) ──────────────
+export function narrate(segments, audioEnabled = true) {
+  stopAll();
+  const myGen = _gen;
+
+  if (!audioEnabled || !segments?.length) {
+    return { cancel: () => {}, promise: Promise.resolve() };
   }
+
+  const promise = (async () => {
+    for (let i = 0; i < segments.length; i++) {
+      if (_gen !== myGen) break;
+
+      const { text } = segments[i];
+      const url = getAudioUrl(text); // synchronous — no await, no fetch, no race
+
+      if (!url) continue; // no MP3 for this text → skip silently
+
+      if (_gen !== myGen) break;
+
+      await _speak(url, myGen);
+    }
+  })();
+
+  return {
+    cancel:  () => stopAll(),
+    promise,
+  };
 }
 
-/**
- * Set mute state globally (respects React UI toggle).
- */
-export function setMuted(muted) {
-  _isMuted = muted;
-  if (_currentAudio) _currentAudio.muted = muted;
+// ─── Eager preload (no-op — browser will cache on first play) ─────────────────
+export function preloadNarration(_segments) {
+  // Nothing to do: all assets are static MP3s served by the same origin.
+  // The browser caches them automatically after the first request.
 }
 
-/**
- * Check if audio is currently playing.
- */
-export function isAudioPlaying() {
-  return _currentAudio !== null && !_currentAudio.paused;
+// ─── UI sound effects (Web Audio API oscillator tones) ───────────────────────
+function _tone(freq, dur, type = 'sine', gain = 0.25) {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const g   = ctx.createGain();
+    osc.connect(g); g.connect(ctx.destination);
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, ctx.currentTime);
+    g.gain.setValueAtTime(gain, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + dur);
+    setTimeout(() => ctx.close().catch(() => {}), dur * 1000 + 200);
+  } catch (_) {}
 }
+
+export const sounds = {
+  correct: (enabled = true) => {
+    if (!enabled) return;
+    _tone(523, 0.09);
+    setTimeout(() => _tone(659, 0.13), 90);
+    setTimeout(() => _tone(784, 0.16), 190);
+  },
+  wrong:  (enabled = true) => { if (enabled) _tone(220, 0.18, 'sawtooth', 0.18); },
+  click:  (enabled = true) => { if (enabled) _tone(880, 0.05, 'sine', 0.12); },
+  badge:  (enabled = true) => {
+    if (!enabled) return;
+    [523, 659, 784, 1047].forEach((f, i) =>
+      setTimeout(() => _tone(f, 0.14), i * 110)
+    );
+  },
+};
