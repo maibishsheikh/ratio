@@ -1,0 +1,53 @@
+/* ============================================================
+   RatioCraft Design Tokens — equal dark-space theme
+   ============================================================ */
+
+:root {
+  /* ── Brand / accent ── */
+  --color-primary:        #ffc107;   /* gold */
+  --color-primary-light:  #ffd54f;
+  --color-secondary:      #7c5cbf;   /* purple */
+  --color-secondary-light:#a78bfa;
+  --color-accent:         #4caf50;   /* green */
+  --color-accent-light:   #81c784;
+
+  /* ── Background ── */
+  --color-bg:             #0a0a2e;
+  --color-surface:        rgba(30,30,100,0.7);
+  --color-border:         rgba(255,255,255,0.1);
+  --color-border-light:   rgba(255,255,255,0.06);
+  --color-text:           #ffffff;
+  --color-text-muted:     rgba(255,255,255,0.4);
+  --color-text-subtle:    rgba(255,255,255,0.6);
+
+  /* ── World accents ── */
+  --world-1: #F97316;
+  --world-2: #7C3AED;
+  --world-3: #D97706;
+
+  /* ── Typography ── */
+  --font-display: 'Fredoka', 'Nunito', system-ui, sans-serif;
+  --font-body:    'Nunito', system-ui, sans-serif;
+  --font-mono:    'JetBrains Mono', 'Fira Code', monospace;
+
+  /* ── Spacing ── */
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
+  --space-5: 20px; --space-6: 24px; --space-8: 32px; --space-10: 40px; --space-12: 48px;
+
+  /* ── Radii ── */
+  --radius-sm:   8px;
+  --radius-md:   16px;
+  --radius-lg:   24px;
+  --radius-xl:   32px;
+  --radius-full: 9999px;
+
+  /* ── Shadows ── */
+  --shadow-sm:   0 2px 8px rgba(0,0,0,0.3);
+  --shadow-md:   0 4px 16px rgba(0,0,0,0.4);
+  --shadow-lg:   0 8px 32px rgba(0,0,0,0.5);
+
+  /* ── Transitions ── */
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --duration-fast: 180ms;
+  --duration-normal: 300ms;
+}
