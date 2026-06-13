@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [react()],
-  base: '/courses/grade-6-math/ratios-rates-proportions/',
+  base: '/',
   server: {
     port: 5173,
     proxy: {
