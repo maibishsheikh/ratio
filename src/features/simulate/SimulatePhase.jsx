@@ -1,6 +1,8 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import QuestionRenderer from '../play/QuestionRenderer';
 import { randInt, pick, buildOptions, numDistractors } from '../../utils/ratioQuestionBank';
+import { useAudio } from '../../core/audio/useAudio';
+import { simulationStationNarration } from '../../utils/narration';
 
 const ROUNDS_PER_STATION = 3;
 
@@ -121,13 +123,27 @@ function SimStation({ icon, title, subtitle, generate, onNext, isLast }) {
   );
 }
 
-export default function SimulatePhase({ onComplete }) {
+export default function SimulatePhase({ onComplete, audioEnabled }) {
   const [station, setStation] = useState(0);
+  const { playNarration, stop } = useAudio();
+
+  // Play station intro narration whenever the active station changes
+  useEffect(() => {
+    if (!audioEnabled) return;
+    const segs = simulationStationNarration(station);
+    if (segs.length > 0) playNarration(segs, null, null);
+  }, [station, audioEnabled]);
+
+  // Stop audio on unmount
+  useEffect(() => {
+    return () => stop();
+  }, []);
 
   const next = useCallback(() => {
+    stop();
     if (station < STATIONS.length - 1) setStation(s => s + 1);
     else onComplete();
-  }, [station, onComplete]);
+  }, [station, onComplete, stop]);
 
   return (
     <div className="simulate-phase">

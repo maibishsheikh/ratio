@@ -30,7 +30,10 @@ function getApiKey() {
 export async function getAudioUrl(text, style = 'statement') {
   // 1. Static cache (audioMap)
   if (audioMap[text]) {
-    return audioMap[text];
+    // Prepend Vite's BASE_URL so assets resolve under sub-path deployments
+    // (e.g. /courses/grade-6-math/…/). BASE_URL always has a trailing slash.
+    const base = (typeof import.meta !== 'undefined' && import.meta.env?.BASE_URL) || '/';
+    return base + audioMap[text].replace(/^\//, '');
   }
 
   // 2. In-memory runtime cache (previous dynamic generations)
@@ -81,8 +84,11 @@ export function speak(url, onEnd) {
   }
 
   if (_currentAudio) {
+    _currentAudio.onended = null;   // prevent stale handler from firing
+    _currentAudio.onerror = null;
     _currentAudio.pause();
     _currentAudio.src = '';
+    _currentAudio = null;
   }
 
   const audio = new Audio(url);
@@ -148,6 +154,8 @@ export function narrate(segments, onSegmentStart, onComplete) {
   return () => {
     cancelled = true;
     if (_currentAudio) {
+      _currentAudio.onended = null;
+      _currentAudio.onerror = null;
       _currentAudio.pause();
       _currentAudio.src = '';
       _currentAudio = null;
@@ -169,6 +177,8 @@ export function preloadNarration(segments) {
  */
 export function stopAudio() {
   if (_currentAudio) {
+    _currentAudio.onended = null;
+    _currentAudio.onerror = null;
     _currentAudio.pause();
     _currentAudio.src = '';
     _currentAudio = null;

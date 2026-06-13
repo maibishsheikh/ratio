@@ -67,9 +67,9 @@ export default function WonderPhase({ onComplete, audioEnabled }) {
     return () => { clearTimeout(t1); clearTimeout(t2); };
   }, []);
 
-  // Play hook narration after reveal
+  // Play hook narration exactly once, when the question card first appears
   useEffect(() => {
-    if (stage < 1 || !audioEnabled) return;
+    if (stage !== 1 || !audioEnabled) return;
     const segs = wonderHookNarration(wonder.worldId);
     if (segs.length > 0) playNarration(segs, null, null);
   }, [stage, audioEnabled]);

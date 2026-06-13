@@ -2,41 +2,44 @@ import { useState, useCallback, useEffect } from 'react';
 import { useAudio } from '../../core/audio/useAudio';
 import { storyNarrations } from '../../utils/narration';
 
+// Vite BASE_URL handles sub-path deployments (e.g. /courses/grade-6-math/…/)
+const BASE = import.meta.env.BASE_URL;
+
 const STORY_SLIDES = [
   {
     title: "The Spice Bazaar 🌶️",
     text: "Alex runs a spice stall at the bustling bazaar. Each morning, he mixes 2 bags of pepper with 3 bags of salt. Customers love his blend! But one day, a big order arrives — they need 6 bags of pepper. How much salt does Alex need to keep the same flavour?",
     highlight: "2 bags pepper : 3 bags salt  →  6 bags pepper : 9 bags salt",
     answer: "Answer: 9 bags of salt! Multiply both sides by 3.",
-    image: "/assets/images/story/1.png",
+    image: `${BASE}assets/images/story/1.png`,
   },
   {
     title: "What is a Ratio? ⚖️",
     text: "A ratio compares two quantities of the same type. Alex's mix is 2 : 3 — for every 2 bags of pepper, there are 3 bags of salt. We can write it as '2 to 3', '2 : 3', or the fraction 2/3. The ratio stays exactly the same even when amounts get bigger or smaller!",
     highlight: "2:3 = 4:6 = 6:9 = 8:12 — all the same ratio!",
     answer: null,
-    image: "/assets/images/story/2.png",
+    image: `${BASE}assets/images/story/2.png`,
   },
   {
     title: "Rates at the Speedway 🚗",
     text: "Emma's race car travels 120 km in 2 hours. That's a RATE — it compares two different types of measurement (distance and time). We write it as '60 km per hour' or '60 km/h'. Unlike a ratio, rates always have two different units joined by the word 'per'.",
     highlight: "Speed = Distance ÷ Time = 120 km ÷ 2 h = 60 km/h",
     answer: null,
-    image: "/assets/images/story/3.png",
+    image: `${BASE}assets/images/story/3.png`,
   },
   {
     title: "Proportion Palace 🏰",
     text: "Two ratios that are equal form a PROPORTION. If 5 pens cost $3, then 10 pens cost $6 — the ratio of pens to price stays the same. We use cross-multiplication to check: multiply diagonally and the products should be equal. This is one of the most powerful tools in maths!",
     highlight: "5 : 3  =  10 : 6   →   5 × 6 = 30   and   3 × 10 = 30  ✓",
     answer: null,
-    image: "/assets/images/story/4.png",
+    image: `${BASE}assets/images/story/4.png`,
   },
   {
     title: "You're Ready! 🏆",
     text: "You now understand three powerful ideas: ratios compare same-type quantities (e.g. 2:3), rates compare different units (e.g. 60 km/h), and proportions are equal ratios (check with cross-multiplication). These skills help solve real problems — in cooking, on maps, calculating speeds, and much more!",
     highlight: "Ratio → Rate → Proportion — you've got this! 🚀",
     answer: null,
-    image: "/assets/images/story/5.png",
+    image: `${BASE}assets/images/story/5.png`,
   },
 ];
 

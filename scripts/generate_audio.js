@@ -40,59 +40,47 @@ const VOICE_SETTINGS = {
 
 // ─── All phrases to pre-generate ──────────────────────────────────────────
 const phrases = [
-  // WONDER
-  { text: "Welcome to the Great World Market! Alex and Emma have discovered a secret recipe map — but it's written entirely in ratios. Three parts pepper for every two parts salt. Can you help them decode it?", style: 'encouragement' },
-  { text: "If we want six bags of salt, how many bags of pepper do we need?", style: 'question' },
-  { text: "Excellent! Six bags of salt is three times the two-part ratio, so we need three times the three parts of pepper — that's nine bags! You already understand ratios!", style: 'celebration' },
-  { text: "Good try! Remember — ratios scale by multiplication. Six divided by two gives us the scale factor of three. Three times three pepper parts gives nine bags!", style: 'encouragement' },
-  { text: "At the Speed Speedway, Zara faces a challenger! The rival boasts: I do one hundred twenty metres in six seconds! Zara replies: I do ninety metres in three seconds. But who is actually faster?", style: 'encouragement' },
-  { text: "Calculate the unit rate — speed per second. Who is faster?", style: 'question' },
-  { text: "That's right! Zara's speed is ninety divided by three — thirty metres per second. The rival's speed is one hundred twenty divided by six — only twenty metres per second. Zara wins!", style: 'celebration' },
-  { text: "Leo stands at the Gold Exchange vault! A banker offers: Deposit five hundred gold coins at ten percent simple interest per year. Leo asks: how much interest will I earn in two years?", style: 'encouragement' },
-  { text: "Calculate the simple interest using I equals P times R times T divided by one hundred.", style: 'question' },
-  { text: "Perfect! Ten percent of five hundred is fifty coins per year. Over two years, that's one hundred coins total interest!", style: 'celebration' },
-  // STORY
-  { text: "Deep within the Great World Market, a legendary challenge has begun! Only those who master the language of ratios may claim the Golden Scale Trophy.", style: 'statement' },
-  { text: "Alex unrolled the ancient scroll. It was filled with strange symbols — pairs of numbers separated by colons. This must be the ratio code!", style: 'statement' },
-  { text: "Emma leaned over. A ratio is just a way of comparing two quantities. Three colon two means for every three of one thing, there are two of another.", style: 'statement' },
-  { text: "But Emma — how do we know if two ratios are describing the same relationship? asked Alex, scratching his head.", style: 'question' },
-  { text: "Good question! If you multiply or divide both parts by the same number, you get an equivalent ratio. Three colon two is the same as six colon four, or nine colon six!", style: 'statement' },
-  { text: "Alex's eyes lit up. So ratios can be simplified — just like fractions! We find the greatest common factor and divide!", style: 'emphasis' },
-  { text: "The spice merchant smiled. You've cracked the first code! Now you may enter the Bazaar. But beware — the next challenge requires comparing rates!", style: 'celebration' },
-  { text: "The Speed Speedway roared with engines! Zara stepped up to the starting line, eyes fierce. I calculate speed before I race. Knowledge is my real engine.", style: 'statement' },
-  { text: "A unit rate tells you how much of one thing happens per single unit of another. Like kilometres per hour — distance per one hour.", style: 'emphasis' },
-  { text: "Zara challenged her rival. You say one hundred twenty kilometres in six hours. I say ninety kilometres in three hours. Shall we find our unit rates?", style: 'statement' },
-  { text: "The rival gulped. One hundred twenty divided by six is twenty kilometres per hour. Zara smiled — ninety divided by three is thirty! I'm fifty percent faster!", style: 'statement' },
-  { text: "Two ratios form a proportion when they're equal. Cross-multiply to check — if a times d equals b times c, the ratios are proportional!", style: 'emphasis' },
-  { text: "And that is how Zara won the Speedway — not just with speed, but with mathematics!", style: 'celebration' },
-  { text: "Leo polished his golden abacus. The Gold Exchange was the most complex district of all — percentages, profit, loss, and the mysterious art of simple interest.", style: 'statement' },
-  { text: "Percent means per hundred. So forty percent simply means forty out of every hundred. It's a special ratio where the second term is always one hundred!", style: 'emphasis' },
-  { text: "Leo explained profit and loss with a smile. If you buy at a low price and sell higher — that difference over the cost price, expressed as a percentage, is your profit percent.", style: 'statement' },
-  { text: "And simple interest? Leo tapped the formula on the wall. Interest equals Principal times Rate times Time, all divided by one hundred. Linear. Predictable. Powerful.", style: 'emphasis' },
-  { text: "With this knowledge, Leo turned five hundred coins into six hundred in just two years. The merchants of the Gold Exchange bowed in respect.", style: 'celebration' },
-  // SIMULATE
-  { text: "Welcome to the Ratio Bar Builder! Drag the sliders to adjust the quantities and watch how the ratio changes. Try to find two ratios that look the same!", style: 'statement' },
-  { text: "Amazing! You discovered that three colon two and six colon four look identical when the bars are the same length. They are equivalent ratios — related by a scale factor!", style: 'celebration' },
-  { text: "Now meet the Proportion Scale! Place your ratio tokens on each side and try to balance it. When both sides are equal — you've found a proportion!", style: 'statement' },
-  { text: "Yes! When the scale balances, a times d always equals b times c. That's the cross-multiplication rule for proportions!", style: 'celebration' },
-  { text: "Welcome to the Rate Speedway! Each car has a distance and a time. Divide to find its unit rate. Then see who wins the race!", style: 'statement' },
-  { text: "Unit rate confirmed! Distance divided by time gives you the rate per single unit. That's how we compare speeds fairly.", style: 'celebration' },
-  { text: "This is Leo's Coin Vault! Turn the dial to choose a percentage and watch exactly that many coins flow out of a hundred. Percent means per hundred!", style: 'statement' },
-  { text: "That's it! You can see that forty percent of one hundred is exactly forty coins. The percentage bar makes it visual!", style: 'celebration' },
-  { text: "Step into the Simple Interest Time Machine! Set the principal, rate, and time — then watch Leo's coins grow year by year. The formula I equals P times R times T over one hundred powers the machine!", style: 'statement' },
-  { text: "Perfect! The coins grow linearly — the same amount each year. That's what makes it simple interest. Now verify your formula result matches the animation!", style: 'celebration' },
-  // PLAY
-  { text: "Great work! Now let's practise what you've discovered. Choose a mode to begin!", style: 'statement' },
+
+  // ── WONDER ────────────────────────────────────────────────────────────
+  // worldId 1 — ratio / proportion questions (Mia's juice, apples, students, recipe)
+  { text: "Hmm, I wonder! Look at this question carefully. Two quantities are being compared in a special way. Can you spot the pattern? Think it through — then click Let's Discover!", style: 'encouragement' },
+  // worldId 2 — rate / speed question (car travelling 60 km/h)
+  { text: "Ooh, a speed challenge! A car travels a certain distance in a set time. When we compare distance to time, we get a rate. Can you work out how far it goes at the same speed?", style: 'encouragement' },
+
+  // ── STORY ─────────────────────────────────────────────────────────────
+  // Slide 0 — The Spice Bazaar
+  { text: "Welcome to the Spice Bazaar! Alex mixes 2 bags of pepper with 3 bags of salt every morning. Today, a huge order arrives needing 6 bags of pepper. How much salt keeps the same flavour? This is exactly what ratios help us solve!", style: 'statement' },
+  // Slide 1 — What is a Ratio?
+  { text: "A ratio compares two quantities of the same type. Alex's blend is 2 colon 3 — for every 2 bags of pepper, there are 3 bags of salt. The ratio stays exactly the same even when the amounts get bigger or smaller!", style: 'statement' },
+  // Slide 2 — Rates at the Speedway
+  { text: "Now meet rates! Emma's car travels 120 kilometres in 2 hours. A rate compares two different units — distance and time. We write it as 60 kilometres per hour. Whenever you see the word per, you are looking at a rate!", style: 'statement' },
+  // Slide 3 — Proportion Palace
+  { text: "When two ratios are equal, they form a proportion! If 5 pens cost 3 dollars, then 10 pens cost 6 dollars — the ratio stays the same. We verify using cross-multiplication: multiply diagonally, and if both products match, it is a proportion!", style: 'statement' },
+  // Slide 4 — You're Ready!
+  { text: "Fantastic work! You have learned three powerful ideas. Ratios compare same-type quantities like 2 colon 3. Rates compare different units like 60 kilometres per hour. And proportions are two equal ratios. You are ready to practise — let's go!", style: 'celebration' },
+
+  // ── SIMULATE ──────────────────────────────────────────────────────────
+  // Station 0 — Ratio Builder
+  { text: "Station one — the Ratio Builder! Simplify each ratio to its lowest terms. Find the number that divides evenly into both parts — that is your scale factor. Let's go!", style: 'statement' },
+  // Station 1 — Rate Detective
+  { text: "Station two — Rate Detective! You have a distance and a time. Divide the distance by the time to find the speed in kilometres per hour. Crack the code!", style: 'statement' },
+  // Station 2 — Proportion Checker
+  { text: "Final station — the Proportion Checker! Two ratios are shown. Use cross-multiplication to decide if they are equal. If both diagonal products match, it is a true proportion!", style: 'statement' },
+
+  // ── PLAY ──────────────────────────────────────────────────────────────
+  // Correct answer feedback (random pick)
   { text: "Excellent answer! You've got it!", style: 'celebration' },
   { text: "Brilliant reasoning! Keep going!", style: 'encouragement' },
   { text: "That's exactly right! Well done!", style: 'celebration' },
-  { text: "Not quite — but you're close! Think about the scale factor.", style: 'thinking' },
-  { text: "Almost! Remember to divide both terms by the same number.", style: 'thinking' },
+  // Wrong answer feedback (random pick)
+  { text: "Not quite, but good try! Read the question again and think it through.", style: 'thinking' },
+  { text: "Almost there! Check your working carefully and try again.", style: 'thinking' },
+  // Boss Battle
   { text: "The Boss Battle begins! Answer five questions correctly to defeat the Market Boss and claim your trophy!", style: 'emphasis' },
   { text: "You defeated the Boss! The Golden Scale Trophy is yours!", style: 'celebration' },
-  // REFLECT
-  { text: "Congratulations! You've completed this World! Let's see how well you mastered the concepts.", style: 'statement' },
-  { text: "Your mastery scores are outstanding! You've earned a badge and a printable worksheet. Well done, champion!", style: 'celebration' },
+  { text: "Hit! Keep going!", style: 'celebration' },
+  { text: "The boss blocks! Watch out!", style: 'thinking' },
+
 ];
 
 // ─── Generate one audio file ──────────────────────────────────────────────
