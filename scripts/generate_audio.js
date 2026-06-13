@@ -151,9 +151,9 @@ async function main() {
       }
     }
 
-    // Escape backticks in key
-    const escapedText = text.replace(/`/g, '\\`');
-    mapEntries.push(`  \`${escapedText}\`: '${publicPath}',`);
+    // Use double-quoted keys — backtick keys are invalid JS object syntax
+    const escapedText = text.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+    mapEntries.push(`  "${escapedText}": '${publicPath}',`);
   }
 
   // Write audioMap.js
